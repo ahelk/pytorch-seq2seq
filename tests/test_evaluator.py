@@ -33,7 +33,7 @@ class TestPredictor(unittest.TestCase):
     @patch.object(Seq2seq, '__call__', return_value=([], None, dict(inputs=[], length=[10]*64, sequence=MagicMock())))
     @patch.object(Seq2seq, 'eval')
     def test_set_eval_mode(self, mock_eval, mock_call):
-        """ Make sure that evaluation is done in evaluation mode. """
+        """ Make sure that evaluation.txt is done in evaluation.txt mode. """
         mock_mgr = MagicMock()
         mock_mgr.attach_mock(mock_eval, 'eval')
         mock_mgr.attach_mock(mock_call, 'call')

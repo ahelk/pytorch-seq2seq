@@ -146,7 +146,7 @@ class SupervisedTrainer(object):
         Args:
             model (seq2seq.models): model to run training on, if `resume=True`, it would be
                overwritten by the model loaded from the latest checkpoint.
-            data (seq2seq.dataset.dataset.Dataset): dataset object to train on
+            data (seq2seq.dataset.dataset.Dataset): dataset object to train.txt on
             num_epochs (int, optional): number of epochs to run (default 5)
             resume(bool, optional): resume training with the latest checkpoint, (default False)
             dev_data (seq2seq.dataset.dataset.Dataset, optional): dev Dataset (default None)

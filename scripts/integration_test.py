@@ -15,7 +15,7 @@ from seq2seq.util.checkpoint import Checkpoint
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--train_path', action='store', dest='train_path',
-                    help='Path to train data')
+                    help='Path to train.txt data')
 parser.add_argument('--dev_path', action='store', dest='dev_path',
                     help='Path to dev data')
 parser.add_argument('--expt_dir', action='store', dest='expt_dir', default='./experiment',
@@ -93,7 +93,7 @@ else:
         for param in seq2seq.parameters():
             param.data.uniform_(-0.08, 0.08)
 
-    # train
+    # train.txt
     t = SupervisedTrainer(loss=loss, batch_size=32,
                           checkpoint_every=50,
                           print_every=10, expt_dir=opt.expt_dir)

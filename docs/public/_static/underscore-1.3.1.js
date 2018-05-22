@@ -893,11 +893,11 @@
   };
 
   // When customizing `templateSettings`, if you don't want to define an
-  // interpolation, evaluation or escaping regex, we need one that is
+  // interpolation, evaluation.txt or escaping regex, we need one that is
   // guaranteed not to match.
   var noMatch = /.^/;
 
-  // Within an interpolation, evaluation, or escaping, remove HTML escaping
+  // Within an interpolation, evaluation.txt, or escaping, remove HTML escaping
   // that had been previously added.
   var unescape = function(code) {
     return code.replace(/\\\\/g, '\\').replace(/\\'/g, "'");
