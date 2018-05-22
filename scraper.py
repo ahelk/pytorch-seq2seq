@@ -20,8 +20,8 @@ special2 = ['Special:Categories', 'Category:Arabic_terms_by_root', 'Category:Ara
 rootfile = 'root.txt'
 datafile = 'data.txt'
 datafile2 = 'data2.txt'
-trainfile = 'train.tsv'
-evalfile = 'eval.tsv'
+trainfile = 'data/train.tsv'
+evalfile = 'data/eval.tsv'
 
 # urllist = []
 # with open(urlfile) as infile:
@@ -80,8 +80,9 @@ with open(datafile2) as infile:
             if ch not in alphabet.keys():
                 alphabet[ch] = len(alphabet)
         [root, words] = line.strip('\n').split('\t')
-        for word in words.split(','):
-            list += [([str(alphabet[char]) for char in root], [str(alphabet[c]) for c in word])]
+        if len(words) > 0:
+            for word in words.split(','):
+                list += [([str(alphabet[char]) for char in root], [str(alphabet[c]) for c in word])]
 
 # alphabet = list(set(alphabet))
 # idx_map = {v:k for v, k in enumerate(alphabet)}

@@ -35,7 +35,7 @@ class SupervisedTrainer(object):
             torch.manual_seed(random_seed)
         self.loss = loss
         self.evaluator = Evaluator(loss=self.loss, batch_size=batch_size)
-        self.optimizer = None
+        # self.optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
         self.checkpoint_every = checkpoint_every
         self.print_every = print_every
 
@@ -128,13 +128,15 @@ class SupervisedTrainer(object):
             epoch_loss_avg = epoch_loss_total / min(steps_per_epoch, step - start_step)
             epoch_loss_total = 0
             log_msg = "Finished epoch %d: Train %s: %.4f" % (epoch, self.loss.name, epoch_loss_avg)
+
+            self.optimizer.update(epoch_loss_avg, epoch)
+
             if dev_data is not None:
                 dev_loss, accuracy = self.evaluator.evaluate(model, dev_data)
-                self.optimizer.update(dev_loss, epoch)
+                # self.optimizer.update(dev_loss, epoch)
                 log_msg += ", Dev %s: %.4f, Accuracy: %.4f" % (self.loss.name, dev_loss, accuracy)
-                model.train(mode=True)
-            else:
-                self.optimizer.update(epoch_loss_avg, epoch)
+                # model.train(mode=True)
+
 
             log.info(log_msg)
 
