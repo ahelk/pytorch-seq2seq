@@ -20,9 +20,8 @@ special2 = ['Special:Categories', 'Category:Arabic_terms_by_root', 'Category:Ara
 rootfile = 'root.txt'
 datafile = 'data.txt'
 datafile2 = 'data2.txt'
-trainfile = 'data/train.tsv'
-evalfile = 'data/eval.tsv'
-
+trainfile = 'train.tsv'
+evalfile = 'eval.tsv'
 # urllist = []
 # with open(urlfile) as infile:
 #     for line in infile:

@@ -13,6 +13,9 @@ from seq2seq.evaluator import Evaluator
 from seq2seq.loss import NLLLoss
 from seq2seq.optim import Optimizer
 from seq2seq.util.checkpoint import Checkpoint
+from tqdm import tqdm
+
+# logging.basicConfig(filename='try.log')
 
 class SupervisedTrainer(object):
     """ The SupervisedTrainer class helps in setting up a training framework in a
@@ -35,7 +38,7 @@ class SupervisedTrainer(object):
             torch.manual_seed(random_seed)
         self.loss = loss
         self.evaluator = Evaluator(loss=self.loss, batch_size=batch_size)
-        # self.optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
+        self.optimizer = None
         self.checkpoint_every = checkpoint_every
         self.print_every = print_every
 
@@ -72,7 +75,7 @@ class SupervisedTrainer(object):
         print_loss_total = 0  # Reset every print_every
         epoch_loss_total = 0  # Reset every epoch
 
-        device = None if torch.cuda.is_available() else -1
+        device = 0 if torch.cuda.is_available() else -1
         batch_iterator = torchtext.data.BucketIterator(
             dataset=data, batch_size=self.batch_size,
             sort=False, sort_within_batch=True,
@@ -84,7 +87,22 @@ class SupervisedTrainer(object):
 
         step = start_step
         step_elapsed = 0
-        for epoch in range(start_epoch, n_epochs + 1):
+
+
+        log.debug("Epoch: %d" % (start_epoch))
+        log_msg = "Starting epoch %d" % (start_epoch)
+        train_loss, train_accuracy = self.evaluator.evaluate(model, data)
+        log_msg += ", Train: %.4f, Accuracy: %.4f" % (train_loss, train_accuracy)
+        if dev_data is not None:
+            dev_loss, accuracy = self.evaluator.evaluate(model, dev_data)
+            log_msg += ", Dev: %.4f, Accuracy: %.4f" % (dev_loss, accuracy)
+            best_dev = accuracy
+        log.info(log_msg)
+
+        best_train = train_accuracy
+
+        for epoch in tqdm(range(start_epoch, n_epochs + 1)):
+
             log.debug("Epoch: %d, Step: %d" % (epoch, step))
 
             batch_generator = batch_iterator.__iter__()
@@ -106,37 +124,43 @@ class SupervisedTrainer(object):
                 print_loss_total += loss
                 epoch_loss_total += loss
 
-                if step % self.print_every == 0 and step_elapsed > self.print_every:
-                    print_loss_avg = print_loss_total / self.print_every
-                    print_loss_total = 0
-                    log_msg = 'Progress: %d%%, Train %s: %.4f' % (
-                        step / total_steps * 100,
-                        self.loss.name,
-                        print_loss_avg)
-                    log.info(log_msg)
+                # if step % self.print_every == 0 and step_elapsed > self.print_every:
+                #     print_loss_avg = print_loss_total / self.print_every
+                #     print_loss_total = 0
+                #     log_msg = 'Progress: %d%%, Train %s: %.4f' % (
+                #         step / total_steps * 100,
+                #         self.loss.name,
+                #         print_loss_avg)
+                #     log.info(log_msg)
 
                 # Checkpoint
-                if step % self.checkpoint_every == 0 or step == total_steps:
-                    Checkpoint(model=model,
-                               optimizer=self.optimizer,
-                               epoch=epoch, step=step,
-                               input_vocab=data.fields[seq2seq.src_field_name].vocab,
-                               output_vocab=data.fields[seq2seq.tgt_field_name].vocab).save(self.expt_dir)
+                # if step % self.checkpoint_every == 0 or step == total_steps:
+                #     Checkpoint(model=model,
+                #                optimizer=self.optimizer,
+                #                epoch=epoch, step=step,
+                #                input_vocab=data.fields[seq2seq.src_field_name].vocab,
+                #                output_vocab=data.fields[seq2seq.tgt_field_name].vocab).save(self.expt_dir)
 
             if step_elapsed == 0: continue
 
             epoch_loss_avg = epoch_loss_total / min(steps_per_epoch, step - start_step)
             epoch_loss_total = 0
-            log_msg = "Finished epoch %d: Train %s: %.4f" % (epoch, self.loss.name, epoch_loss_avg)
+            log_msg = "Finished epoch %d: Average loss: %.4f" % (epoch, epoch_loss_avg)
 
-            self.optimizer.update(epoch_loss_avg, epoch)
+            train_loss, train_accuracy = self.evaluator.evaluate(model, data)
+            if train_accuracy > best_train:
+                best_train = train_accuracy
+            log_msg += ", Train Loss: %.4f, Accuracy: %.4f, Best Accuracy: %.4f" % (train_loss, train_accuracy, best_train)
 
             if dev_data is not None:
                 dev_loss, accuracy = self.evaluator.evaluate(model, dev_data)
+                if accuracy > best_dev:
+                    best_dev = accuracy
                 # self.optimizer.update(dev_loss, epoch)
-                log_msg += ", Dev %s: %.4f, Accuracy: %.4f" % (self.loss.name, dev_loss, accuracy)
+                log_msg += ", Dev Loss: %.4f, Accuracy: %.4f, Best Accuracy: %.4f" % (dev_loss, accuracy, best_dev)
                 # model.train(mode=True)
 
+            self.optimizer.update(epoch_loss_avg, epoch)
 
             log.info(log_msg)
 
